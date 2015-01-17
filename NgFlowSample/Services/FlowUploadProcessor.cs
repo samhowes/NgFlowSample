@@ -138,7 +138,7 @@ namespace NgFlowSample.Services
     /// </summary>
     class FileMetaData
     {
-        private static int ChunkIndex(int chunkNumber)
+        private static long ChunkIndex(long chunkNumber)
         {
             return chunkNumber - 1;
         }
