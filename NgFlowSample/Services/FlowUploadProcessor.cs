@@ -23,7 +23,7 @@ namespace NgFlowSample.Services
         //================================================================================
         // Class Methods
         //================================================================================
-
+        #region Static Methods
         /// <summary>
         /// Ensures the thread safety of our static methods.
         /// </summary>
@@ -73,11 +73,12 @@ namespace NgFlowSample.Services
         /// <summary>
         /// (Thread Safe) Marks a chunk as recieved.
         /// </summary>
-        private static void RegisterSuccessfulChunk(FlowMetaData chunkMeta)
+        private static bool RegisterSuccessfulChunk(FlowMetaData chunkMeta)
         {
+            FileMetaData fileMeta;
             lock (chunkCacheLock)
             {
-                var fileMeta = GetFileMetaData(chunkMeta.FlowIdentifier);
+                fileMeta = GetFileMetaData(chunkMeta.FlowIdentifier);
 
                 if (fileMeta == null)
                 {
@@ -94,6 +95,7 @@ namespace NgFlowSample.Services
                     //uploadChunkCache.Remove(chunkMeta.FlowIdentifier);
                 }
             }
+            return fileMeta.IsComplete;
         }
 
         public static bool HasRecievedChunk(FlowMetaData chunkMeta)
@@ -104,11 +106,11 @@ namespace NgFlowSample.Services
 
             return wasRecieved;
         }
-
+        #endregion
         //================================================================================
         // Instance Methods
         //================================================================================
-
+        #region Instance Methods
         private FlowMultipartFormDataStreamProvider StreamProvider { get; set; }
 
         public FlowMetaData MetaData
@@ -116,21 +118,29 @@ namespace NgFlowSample.Services
             get { return this.StreamProvider.MetaData; }
         }
 
+        public bool IsComplete { get; private set; }
+
+        public DateTime CompletedDateTime { get; private set; }
 
         public FlowUploadProcessor(string uploadPath)
         {
             StreamProvider = GetMultipartProvider(uploadPath);
         }
 
-
-        public async Task ProcessUploadChunkRequest(HttpRequestMessage request)
+        public async Task<bool> ProcessUploadChunkRequest(HttpRequestMessage request)
         {
             await request.Content.ReadAsMultipartAsync(StreamProvider);
 
-            RegisterSuccessfulChunk(MetaData);
+            IsComplete = RegisterSuccessfulChunk(MetaData);
 
+            if (IsComplete)
+            {
+                CompletedDateTime = DateTime.Now;
+            }
+
+            return IsComplete;
         }
-
+        #endregion
     }
 
     /// <summary>
@@ -167,7 +177,6 @@ namespace NgFlowSample.Services
                 return (TotalChunksReceived == FlowMeta.FlowTotalChunks);
             }
         }
-
 
         public void RegisterChunkAsReceived(FlowMetaData flowMeta)
         {

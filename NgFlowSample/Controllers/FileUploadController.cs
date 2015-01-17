@@ -30,6 +30,16 @@ namespace NgFlowSample.Controllers
 
             var uploadProcessor = new FlowUploadProcessor("~/App_Data/Tmp/FileUploads");
             await uploadProcessor.ProcessUploadChunkRequest(Request);
+
+            if (uploadProcessor.IsComplete)
+            {
+                // Do post processing here:
+                // - Move the file to a permanent location
+                // - Persist information to a database
+                // - Raise an event to signal it was completed (if you are really feeling up to it)
+                //      - http://www.udidahan.com/2009/06/14/domain-\events-salvation/
+                //      - http://msdn.microsoft.com/en-gb/magazine/ee236415.aspx#id0400079
+            }
            
             return Ok();
         }
