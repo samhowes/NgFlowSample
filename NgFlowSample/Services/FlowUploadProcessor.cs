@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Net.Http;
+using System.Runtime.Caching;
 using System.Threading.Tasks;
 using System.Web;
 using Microsoft.Ajax.Utilities;
@@ -10,7 +11,7 @@ using NgFlowSample.Models;
 
 namespace NgFlowSample.Services
 {
-    
+
     /// <summary>
     /// A Service to handle an upload from Flow. Contains thread safe static methods
     /// to handle upload tracking, and instance methods to handle the upload of a single
@@ -18,7 +19,7 @@ namespace NgFlowSample.Services
     /// </summary>
     public class FlowUploadProcessor
     {
-        
+
         //================================================================================
         // Class Methods
         //================================================================================
@@ -26,14 +27,33 @@ namespace NgFlowSample.Services
         /// <summary>
         /// Ensures the thread safety of our static methods.
         /// </summary>
-        private static Object chunkDictionaryLock = new Object();
-        
-        /// <summary>
-        /// Track our in progress downloads.
-        /// </summary>
-        private static Dictionary<string, FileMetaData> uploadChunkDictionary = new Dictionary<string, FileMetaData>();
+        private static Object chunkCacheLock = new Object();
 
-        
+        /// <summary>
+        /// Track our in progress uploads, by using a cache, we make sure we don't accumulate memory
+        /// </summary>
+        private static MemoryCache uploadChunkCache = MemoryCache.Default;
+
+        private static FileMetaData GetFileMetaData(string flowIdentifier)
+        {
+            lock (chunkCacheLock)
+            {
+                return uploadChunkCache[flowIdentifier] as FileMetaData;
+            }
+        }
+
+        /// <summary>
+        /// Keep an upload in cache for two hours after it is last used
+        /// </summary>
+        private static CacheItemPolicy DefaultCacheItemPolicy()
+        {
+            return new CacheItemPolicy()
+            {
+                SlidingExpiration = TimeSpan.FromMinutes(120)
+            };
+        }
+
+
         /// <summary>
         /// Creates a Stream Provider suitable for handling a single upload chunk.
         /// </summary>
@@ -55,34 +75,32 @@ namespace NgFlowSample.Services
         /// </summary>
         private static void RegisterSuccessfulChunk(FlowMetaData chunkMeta)
         {
-            lock (chunkDictionaryLock)
+            lock (chunkCacheLock)
             {
-                FileMetaData fileMeta;
+                var fileMeta = GetFileMetaData(chunkMeta.FlowIdentifier);
 
-                if (!uploadChunkDictionary.TryGetValue(chunkMeta.FlowIdentifier, out fileMeta))
+                if (fileMeta == null)
                 {
                     fileMeta = new FileMetaData(chunkMeta);
-                    uploadChunkDictionary[chunkMeta.FlowIdentifier] = fileMeta;
+                    uploadChunkCache.Add(chunkMeta.FlowIdentifier, chunkMeta, DefaultCacheItemPolicy());
                 }
 
                 fileMeta.RegisterChunkAsReceived(chunkMeta);
                 if (fileMeta.IsComplete)
                 {
-                    uploadChunkDictionary.Remove(chunkMeta.FlowIdentifier);
+                    // Since we are using a cache and memory is automatically disposed,
+                    // we don't need to do this, so we won't so we can keep a record of
+                    // our completed uploads.
+                    //uploadChunkCache.Remove(chunkMeta.FlowIdentifier);
                 }
-            }   
+            }
         }
 
         public static bool HasRecievedChunk(FlowMetaData chunkMeta)
         {
-            bool wasRecieved;
-            
-            lock (chunkDictionaryLock)
-            {
-                FileMetaData fileMeta;
-                wasRecieved = uploadChunkDictionary.TryGetValue(chunkMeta.FlowIdentifier, out fileMeta) &&
-                   fileMeta.HasChunk(chunkMeta);
-            }
+            var fileMeta = GetFileMetaData(chunkMeta.FlowIdentifier);
+
+            bool wasRecieved = fileMeta != null && fileMeta.HasChunk(chunkMeta);
 
             return wasRecieved;
         }
@@ -92,7 +110,7 @@ namespace NgFlowSample.Services
         //================================================================================
 
         private FlowMultipartFormDataStreamProvider StreamProvider { get; set; }
-        
+
         public FlowMetaData MetaData
         {
             get { return this.StreamProvider.MetaData; }
