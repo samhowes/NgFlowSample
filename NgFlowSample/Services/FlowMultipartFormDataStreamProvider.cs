@@ -4,7 +4,10 @@ using System.IO;
 using System.Linq;
 using System.Net.Http;
 using System.Net.Http.Headers;
+using System.Text;
 using System.Threading.Tasks;
+using System.Web.Helpers;
+using Newtonsoft.Json;
 using NgFlowSample.Models;
 
 namespace NgFlowSample.Services
@@ -26,6 +29,8 @@ namespace NgFlowSample.Services
         /// </summary>
         public override string GetLocalFileName(HttpContentHeaders headers)
         {
+            // Construct a JSON object so the Serializer will get our types for us
+            var jsonBuilder = new StringBuilder("{");
             var flowMetaDictionary = new Dictionary<string, string>();
             foreach (var item in this.Contents)
             {
@@ -33,17 +38,33 @@ namespace NgFlowSample.Services
                 string key = param.Value.Trim('\"');
                 string value = item.ReadAsStringAsync().Result;
 
-                // Possible way to parse as JSON:
+                // Possible way to parse value as JSON:
                 //MyObject myObj = JsonConvert.DeserializeObject<MyObject>(value);
-
+                
+                // Instead, we'll try to put everything into a FlowMetadata object
+                jsonBuilder.AppendFormat("\"{0}\":\"{1}\",",key,value);
                 flowMetaDictionary[key] = value;
             }
 
-            MetaData = new FlowMetaData(flowMetaDictionary);
+            jsonBuilder.Remove(jsonBuilder.Length - 1, 1);  // remove the last ',' character
+            jsonBuilder.Append("}");                        // close the json
 
+            // Allow for dynamic properties: Adding a property to the class means you don't have to remember
+            // to add it to the constructor
+            var dynamicMetaData = JsonConvert.DeserializeObject<FlowMetaData>(jsonBuilder.ToString());
+
+            // Strict properties: you have to specify each property in the constructor and handle it yourself
+            var strictMetaData = new FlowMetaData(flowMetaDictionary);
+
+            // I like the dynamic method much better, much more maintainable
+            MetaData = dynamicMetaData;
+
+
+            return MetaData.FlowFilename;
+            
+            // If you wanted to save each chunk individually and stitch it together later (bad performance in my opinion):
             //var flowChunkName = String.Format("{0}.{1}", MetaData.flowFilename, MetaData.FlowChunkNumber);
             //return flowChunkName;
-            return MetaData.FlowFilename;
         }
 
         /// <summary>

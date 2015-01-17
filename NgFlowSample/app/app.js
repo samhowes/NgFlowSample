@@ -14,12 +14,19 @@ app.config(['flowFactoryProvider', appConfig]);
 
 
 function appConfig(flowFactoryProvider) {
+
+    var myCustomData = {
+        requestVerificationToken: 'xsrf',
+        blueElephant: '42'
+    };
+
     flowFactoryProvider.defaults = {
         target: 'api/upload',
         permanentErrors: [404, 500, 501],
         maxChunkRetries: 1,
         chunkRetryInterval: 5000,
-        simultaneousUploads: 4
+        simultaneousUploads: 4,
+        query: myCustomData
     };
     flowFactoryProvider.on('catchAll', function (event) {
         console.log('catchAll', arguments);

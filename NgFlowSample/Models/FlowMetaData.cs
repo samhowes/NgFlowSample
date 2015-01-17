@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using System.Web;
 
 namespace NgFlowSample.Models
@@ -19,7 +20,12 @@ namespace NgFlowSample.Models
             FlowFilename = values["flowFilename"];
             FlowRelativePath = values["flowRelativePath"];
             FlowTotalChunks = Int64.Parse(values["flowTotalChunks"]);
+            // Oh no! I forgot to add "RequestVerificationToken" and "BlueElephant" to this list.
+            // Good thing I dynamically parse the object when I create this instead of using this method.
+            // otherwise, those properties will be null!
         }
+
+        
 
         /// <summary>
         /// The index of the chunk in the current upload. First chunk is 1 (no base-0 counting here).
@@ -57,6 +63,14 @@ namespace NgFlowSample.Models
         {
             get { return FlowChunkSize * (FlowChunkNumber - 1); }
         }
+
+        #region Custom data for the Flow Query parameter
+
+        public string RequestVerificationToken { get; set; }
+
+        public int BlueElephant { get; set; }
+
+        #endregion
 
     }
 }
