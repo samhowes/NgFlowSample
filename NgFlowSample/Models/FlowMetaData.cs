@@ -11,33 +11,33 @@ namespace NgFlowSample.Models
 
         public FlowMetaData(Dictionary<string, string> values)
         {
-            FlowChunkNumber = Int32.Parse(values["flowChunkNumber"]);
-            FlowChunkSize = Int32.Parse(values["flowChunkSize"]);
-            FlowCurrentChunkSize = Int32.Parse(values["flowCurrentChunkSize"]);
-            FlowTotalSize = Int32.Parse(values["flowTotalSize"]);
+            FlowChunkNumber = Int64.Parse(values["flowChunkNumber"]);
+            FlowChunkSize = Int64.Parse(values["flowChunkSize"]);
+            FlowCurrentChunkSize = Int64.Parse(values["flowCurrentChunkSize"]);
+            FlowTotalSize = Int64.Parse(values["flowTotalSize"]);
             FlowIdentifier = values["flowIdentifier"];
             FlowFilename = values["flowFilename"];
             FlowRelativePath = values["flowRelativePath"];
-            FlowTotalChunks = Int32.Parse(values["flowTotalChunks"]);
+            FlowTotalChunks = Int64.Parse(values["flowTotalChunks"]);
         }
 
         /// <summary>
         /// The index of the chunk in the current upload. First chunk is 1 (no base-0 counting here).
         /// </summary>
-        public int FlowChunkNumber { get; set; }
+        public long FlowChunkNumber { get; set; }
 
         /// <summary>
         /// The total number of chunks.
         /// </summary>
-        public int FlowChunkSize { get; set; }
+        public long FlowChunkSize { get; set; }
         /// <summary>
         /// The general chunk size. Using this value and flowTotalSize you can calculate the total number of chunks. Please note that the size of the data received in the HTTP might be lower than flowChunkSize of this for the last chunk for a file.
         /// </summary>
-        public int FlowCurrentChunkSize { get; set; }
+        public long FlowCurrentChunkSize { get; set; }
         /// <summary>
         /// The total file size.
         /// </summary>
-        public int FlowTotalSize { get; set; }
+        public long FlowTotalSize { get; set; }
         /// <summary>
         /// A unique identifier for the file contained in the request.
         /// </summary>
@@ -51,7 +51,7 @@ namespace NgFlowSample.Models
         /// </summary>
         public string FlowRelativePath { get; set; }
 
-        public int FlowTotalChunks { get; set; }
+        public long FlowTotalChunks { get; set; }
 
         public long FileOffset
         {
