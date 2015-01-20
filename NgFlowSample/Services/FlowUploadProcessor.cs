@@ -83,7 +83,7 @@ namespace NgFlowSample.Services
                 if (fileMeta == null)
                 {
                     fileMeta = new FileMetaData(chunkMeta);
-                    uploadChunkCache.Add(chunkMeta.FlowIdentifier, chunkMeta, DefaultCacheItemPolicy());
+                    uploadChunkCache.Add(chunkMeta.FlowIdentifier, fileMeta, DefaultCacheItemPolicy());
                 }
 
                 fileMeta.RegisterChunkAsReceived(chunkMeta);
