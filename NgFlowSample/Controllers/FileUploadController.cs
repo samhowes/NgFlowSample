@@ -9,8 +9,7 @@ using System.Net.Http.Headers;
 using System.Threading.Tasks;
 using System.Web;
 using System.Web.Http;
-using NgFlowSample.Models;
-using NgFlowSample.Services;
+using Flow.Net;
 
 namespace NgFlowSample.Controllers
 {

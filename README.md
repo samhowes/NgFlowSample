@@ -19,3 +19,10 @@ of individual chunks.
 The important part of this implementation is the custom FlowMultiplartFormDataStreamProvider.cs that handles the actual streaming 
 of files to disk. When it gets to the file part of the HTTP Body it retrieves the FlowMetaData from the previous content and uses
 that data to save the chunk to the appropriate file.
+
+Advantages
+==========
+1. No request memory buffering
+   1. The standard HttpContext.Current.Request.Files approach first buffers the file contents into server memory before saving to disk. With 1MB chunks running on simultaneous threads, that's a lot of memory consumption
+   
+

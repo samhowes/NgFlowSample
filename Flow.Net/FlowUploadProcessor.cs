@@ -1,15 +1,10 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Net.Http;
 using System.Runtime.Caching;
 using System.Threading.Tasks;
-using System.Web;
-using Microsoft.Ajax.Utilities;
-using NgFlowSample.Models;
 
-namespace NgFlowSample.Services
+namespace Flow.Net
 {
 
     /// <summary>
@@ -64,10 +59,11 @@ namespace NgFlowSample.Services
                 throw new ArgumentNullException("uploadPath");
             }
 
-            var root = HttpContext.Current.Server.MapPath(uploadPath);
-            Directory.CreateDirectory(root);
+            //todo make sure upload path is created somewhere
+            //var root = HttpContext.Current.Server.MapPath(uploadPath);
+            //Directory.CreateDirectory(root);
 
-            return new FlowMultipartFormDataStreamProvider(root);
+            return new FlowMultipartFormDataStreamProvider(uploadPath);
         }
 
         /// <summary>
