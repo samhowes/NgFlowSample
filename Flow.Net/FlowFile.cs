@@ -29,13 +29,7 @@
 
         public string FlowIdentifier => FlowMeta.FlowIdentifier;
 
-        public bool IsComplete
-        {
-            get
-            {
-                return (TotalChunksReceived == FlowMeta.FlowTotalChunks);
-            }
-        }
+        public bool IsComplete => TotalChunksReceived == FlowMeta.FlowTotalChunks;
 
         public void RegisterChunkAsReceived(FlowChunk flowMeta)
         {
