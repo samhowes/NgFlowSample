@@ -105,9 +105,10 @@ namespace Flow.Net
         /// <para>The default implementation does what GetLocalFileName() does in here.</para>
         /// <para>Make sure to override it so it doesn't try to do those things a second time.</para>
         /// </summary>
-        public override async Task ExecutePostProcessingAsync()
+        public override Task ExecutePostProcessingAsync()
         {
             // Nothing to do, we already processed the information in GetFileName
+            return Task.FromResult((object) null);
         }
     }
     
