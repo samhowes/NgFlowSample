@@ -18,19 +18,32 @@ namespace NgFlowSample.Controllers
     [RoutePrefix("api")]
     public class FileUploadController : ApiController
     {
+        private readonly IFlowUploadProcessor _flowUploadProcessor;
+        private readonly IFlowUploadRepository _uploadRepository;
+
+        public FileUploadController()
+        {
+            //todo dependency injection
+            var options = new FlowUploadOptions()
+            {
+                UploadDirectoryPath = "~/App_Data/Tmp/FileUploads" //todo make sure upload path is created somewhere
+            };
+            var streamProvider = new FlowMultipartFormDataStreamProvider(options.UploadDirectoryPath);
+            _uploadRepository = new FlowUploadRepository();
+            _flowUploadProcessor = new FlowUploadProcessor(streamProvider, _uploadRepository);
+        }
         
         [Route("Upload"), HttpPost]
         public async Task<IHttpActionResult> Upload()
         {
             if (!Request.Content.IsMimeMultipartContent())
             {
-                this.Request.CreateResponse(HttpStatusCode.UnsupportedMediaType);
+                Request.CreateResponse(HttpStatusCode.UnsupportedMediaType);
             }
+            
+            bool isComplete = await _flowUploadProcessor.ProcessUploadChunkRequestAsync(Request);
 
-            var uploadProcessor = new FlowUploadProcessor("~/App_Data/Tmp/FileUploads");
-            await uploadProcessor.ProcessUploadChunkRequest(Request);
-
-            if (uploadProcessor.IsComplete)
+            if (isComplete)
             {
                 // Do post processing here:
                 // - Move the file to a permanent location
@@ -44,9 +57,12 @@ namespace NgFlowSample.Controllers
         }
 
         [Route("Upload"), HttpGet]
-        public IHttpActionResult TestFlowChunk([FromUri]FlowMetaData flowMeta)
+        public async Task<IHttpActionResult> TestFlowChunk([FromUri]FlowMetaData flowMeta)
         {
-            if (FlowUploadProcessor.HasRecievedChunk(flowMeta))
+            var upload = await _uploadRepository.GetUploadAsync(flowMeta);
+
+            bool wasRecieved = upload != null && upload.HasChunk(flowMeta);
+            if (wasRecieved)
             {
                 return Ok();
             }

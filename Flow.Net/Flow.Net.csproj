@@ -50,9 +50,11 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="FileMetaData.cs" />
     <Compile Include="FlowMetaData.cs" />
     <Compile Include="FlowMultipartFormDataStreamProvider.cs" />
     <Compile Include="FlowUploadProcessor.cs" />
+    <Compile Include="IFlowUploadRepository.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
