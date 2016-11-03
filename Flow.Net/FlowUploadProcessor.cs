@@ -41,21 +41,21 @@ namespace Flow.Net
         {
             await request.Content.ReadAsMultipartAsync(_streamProvider);
 
-            var upload = await _uploadRepository.GetUploadAsync(_streamProvider.MetaData);
+            var upload = await _uploadRepository.GetUploadAsync(_streamProvider.Chunk);
 
             if (upload == null)
             {
-                upload = new FileMetaData(_streamProvider.MetaData);
+                upload = new FlowFile(_streamProvider.Chunk);
                 await _uploadRepository.AddAsync(upload);
             }
 
-            upload.RegisterChunkAsReceived(_streamProvider.MetaData);
+            upload.RegisterChunkAsReceived(_streamProvider.Chunk);
             if (upload.IsComplete)
             {
                 // Since we are using a cache and memory is automatically disposed,
                 // we don't need to do this, so we won't so we can keep a record of
                 // our completed uploads.
-                await _uploadRepository.RemoveAsync(_streamProvider.MetaData);
+                await _uploadRepository.RemoveAsync(_streamProvider.Chunk);
            
                 CompletedDateTime = DateTime.Now;
             }

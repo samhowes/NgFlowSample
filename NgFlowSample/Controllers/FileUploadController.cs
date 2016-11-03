@@ -57,7 +57,7 @@ namespace NgFlowSample.Controllers
         }
 
         [Route("Upload"), HttpGet]
-        public async Task<IHttpActionResult> TestFlowChunk([FromUri]FlowMetaData flowMeta)
+        public async Task<IHttpActionResult> TestFlowChunk([FromUri]FlowChunk flowMeta)
         {
             var upload = await _uploadRepository.GetUploadAsync(flowMeta);
 

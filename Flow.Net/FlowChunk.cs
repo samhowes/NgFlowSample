@@ -3,11 +3,11 @@ using System.Collections.Generic;
 
 namespace Flow.Net
 {
-    public class FlowMetaData
+    public class FlowChunk
     {
-        public FlowMetaData() { }
+        public FlowChunk() { }
 
-        public FlowMetaData(Dictionary<string, string> values)
+        public FlowChunk(Dictionary<string, string> values)
         {
             FlowChunkNumber = Int64.Parse(values["flowChunkNumber"]);
             FlowChunkSize = Int64.Parse(values["flowChunkSize"]);

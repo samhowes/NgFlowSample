@@ -3,14 +3,14 @@
     /// <summary>
     /// Our own internal metadata to track the progress of a download. 
     /// </summary>
-    public class FileMetaData
+    public class FlowFile
     {
         private static long ChunkIndex(long chunkNumber)
         {
             return chunkNumber - 1;
         }
 
-        public FileMetaData(FlowMetaData flowMeta)
+        public FlowFile(FlowChunk flowMeta)
         {
             FlowMeta = flowMeta;
             ChunkArray = new bool[flowMeta.FlowTotalChunks];
@@ -25,7 +25,7 @@
         /// </summary>
         public int TotalChunksReceived { get; set; }
 
-        public FlowMetaData FlowMeta { get; set; }
+        public FlowChunk FlowMeta { get; set; }
 
         public string FlowIdentifier => FlowMeta.FlowIdentifier;
 
@@ -37,13 +37,13 @@
             }
         }
 
-        public void RegisterChunkAsReceived(FlowMetaData flowMeta)
+        public void RegisterChunkAsReceived(FlowChunk flowMeta)
         {
             ChunkArray[ChunkIndex(flowMeta.FlowChunkNumber)] = true;
             TotalChunksReceived++;
         }
 
-        public bool HasChunk(FlowMetaData flowMeta)
+        public bool HasChunk(FlowChunk flowMeta)
         {
             // todo lock this
             return ChunkArray[ChunkIndex(flowMeta.FlowChunkNumber)];

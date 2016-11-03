@@ -12,7 +12,7 @@ namespace Flow.Net
 {
     public class FlowMultipartFormDataStreamProvider : MultipartFormDataStreamProvider
     {
-        public FlowMetaData MetaData;
+        public FlowChunk Chunk;
 
         public readonly string Filename;
 
@@ -49,19 +49,19 @@ namespace Flow.Net
 
             // Allow for dynamic properties: Adding a property to the class means you don't have to remember
             // to add it to the constructor
-            var dynamicMetaData = JsonConvert.DeserializeObject<FlowMetaData>(jsonBuilder.ToString());
+            var dynamicMetaData = JsonConvert.DeserializeObject<FlowChunk>(jsonBuilder.ToString());
 
             // Strict properties: you have to specify each property in the constructor and handle it yourself
-            var strictMetaData = new FlowMetaData(flowMetaDictionary);
+            var strictMetaData = new FlowChunk(flowMetaDictionary);
 
             // I like the dynamic method much better, much more maintainable
-            MetaData = dynamicMetaData;
+            Chunk = dynamicMetaData;
 
 
-            return MetaData.FlowFilename;
+            return Chunk.FlowFilename;
             
             // If you wanted to save each chunk individually and stitch it together later (bad performance in my opinion):
-            //var flowChunkName = String.Format("{0}.{1}", MetaData.flowFilename, MetaData.FlowChunkNumber);
+            //var flowChunkName = String.Format("{0}.{1}", Chunk.flowFilename, Chunk.FlowChunkNumber);
             //return flowChunkName;
         }
 
@@ -94,9 +94,9 @@ namespace Flow.Net
 
 
             flowFileStream = File.Open(path, FileMode.OpenOrCreate, FileAccess.Write, FileShare.Write);
-            flowFileStream.SetLength(MetaData.FlowTotalSize);
+            flowFileStream.SetLength(Chunk.FlowTotalSize);
 
-            flowFileStream.Seek(MetaData.FileOffset, 0);
+            flowFileStream.Seek(Chunk.FileOffset, 0);
 
             return flowFileStream;
         }

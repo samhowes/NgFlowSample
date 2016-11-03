@@ -6,9 +6,9 @@ namespace Flow.Net
 {
     public interface IFlowUploadRepository
     {
-        Task<FileMetaData> GetUploadAsync(FlowMetaData metaData);
-        Task AddAsync(FileMetaData fileMeta);
-        Task RemoveAsync(FlowMetaData metaData);
+        Task<FlowFile> GetUploadAsync(FlowChunk chunk);
+        Task AddAsync(FlowFile flowFileMeta);
+        Task RemoveAsync(FlowChunk chunk);
     }
 
     public class FlowUploadRepository : IFlowUploadRepository
@@ -24,16 +24,16 @@ namespace Flow.Net
         /// </summary>
         private readonly object _chunkCacheLock = new object();
 
-        public Task<FileMetaData> GetUploadAsync(FlowMetaData metaData)
+        public Task<FlowFile> GetUploadAsync(FlowChunk chunk)
         {
             lock (_chunkCacheLock)
             {
-                var upload = _uploadChunkCache[metaData.FlowIdentifier] as FileMetaData;
+                var upload = _uploadChunkCache[chunk.FlowIdentifier] as FlowFile;
                 return Task.FromResult(upload);
             }
         }
 
-        public Task AddAsync(FileMetaData fileMeta)
+        public Task AddAsync(FlowFile flowFileMeta)
         {
             lock (_chunkCacheLock)
             {
@@ -43,16 +43,16 @@ namespace Flow.Net
                     SlidingExpiration = TimeSpan.FromMinutes(120)
                 };
         
-                _uploadChunkCache.Add(fileMeta.FlowIdentifier, fileMeta, cachePolicy);
+                _uploadChunkCache.Add(flowFileMeta.FlowIdentifier, flowFileMeta, cachePolicy);
                 return Task.FromResult((object)null);
             }
         }
 
-        public Task RemoveAsync(FlowMetaData metaData)
+        public Task RemoveAsync(FlowChunk chunk)
         {
             lock (_chunkCacheLock)
             {
-                _uploadChunkCache.Remove(metaData.FlowIdentifier);
+                _uploadChunkCache.Remove(chunk.FlowIdentifier);
                 return Task.FromResult((object) null);
             }
         }
