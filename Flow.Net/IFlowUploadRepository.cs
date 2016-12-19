@@ -6,38 +6,36 @@ namespace Flow.Net
 {
     public interface IFlowUploadRepository
     {
-        Task<FlowFile> GetUploadAsync(FlowChunk chunk);
+        Task<FlowFile> GetAsync(string flowFileIdentifier);
         Task AddAsync(FlowFile flowFileMeta);
         Task RemoveAsync(FlowChunk chunk);
     }
 
-    public class FlowUploadRepository : IFlowUploadRepository
+    public class MemoryCacheFlowUploadRepository : IFlowUploadRepository
     {
         /// <summary>
         /// Track our in progress uploads, by using a cache, we make sure we don't accumulate memory
         /// </summary>
-        // todo Inject this via constructor
-        private readonly MemoryCache _uploadChunkCache = MemoryCache.Default;
-
-        /// <summary>
-        /// Ensures the thread safety of our static methods.
-        /// </summary>
-        private readonly object _chunkCacheLock = new object();
-
-        public Task<FlowFile> GetUploadAsync(FlowChunk chunk)
+        private readonly MemoryCache _uploadChunkCache;
+        
+        public MemoryCacheFlowUploadRepository(MemoryCache uploadChunkCache)
         {
-            lock (_chunkCacheLock)
+            _uploadChunkCache = uploadChunkCache;
+        }
+
+        public Task<FlowFile> GetAsync(string flowFileIdentifier)
+        {
+            lock (_uploadChunkCache)
             {
-                var upload = _uploadChunkCache[chunk.FlowIdentifier] as FlowFile;
+                var upload = _uploadChunkCache[flowFileIdentifier] as FlowFile;
                 return Task.FromResult(upload);
             }
         }
 
         public Task AddAsync(FlowFile flowFileMeta)
         {
-            lock (_chunkCacheLock)
+            lock (_uploadChunkCache)
             {
-                // todo refactor out to the data store
                 var cachePolicy = new CacheItemPolicy()
                 {
                     SlidingExpiration = TimeSpan.FromMinutes(120)
@@ -50,9 +48,9 @@ namespace Flow.Net
 
         public Task RemoveAsync(FlowChunk chunk)
         {
-            lock (_chunkCacheLock)
+            lock (_uploadChunkCache)
             {
-                _uploadChunkCache.Remove(chunk.FlowIdentifier);
+                _uploadChunkCache.Remove(chunk.FileIdentifier);
                 return Task.FromResult((object) null);
             }
         }

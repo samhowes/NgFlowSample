@@ -1,46 +1,51 @@
-﻿namespace Flow.Net
+﻿using System;
+
+namespace Flow.Net
 {
-    /// <summary>
-    /// Our own internal metadata to track the progress of a download. 
-    /// </summary>
     public class FlowFile
     {
-        private static long ChunkIndex(long chunkNumber)
+        public FlowFile(string flowIdentifier, long numberOfChunks)
         {
-            return chunkNumber - 1;
-        }
-
-        public FlowFile(FlowChunk flowMeta)
-        {
-            FlowMeta = flowMeta;
-            ChunkArray = new bool[flowMeta.FlowTotalChunks];
+            FlowIdentifier = flowIdentifier;
+            ChunkArray = new bool[numberOfChunks];
             TotalChunksReceived = 0;
         }
 
-        public bool[] ChunkArray { get; set; }
+        public bool[] ChunkArray { get; private set; }
 
         /// <summary>
         /// Chunks can come out of order, so we must track how many chunks 
         /// we have successfully recieved to determine if the download is complete.
         /// </summary>
-        public int TotalChunksReceived { get; set; }
+        public int TotalChunksReceived { get; private set; }
 
-        public FlowChunk FlowMeta { get; set; }
+        public string FlowIdentifier { get; private set; }
 
-        public string FlowIdentifier => FlowMeta.FlowIdentifier;
+        public DateTime CompletedDateTime { get; set; }
 
-        public bool IsComplete => TotalChunksReceived == FlowMeta.FlowTotalChunks;
+        public bool IsComplete => TotalChunksReceived == ChunkArray.Length;
 
-        public void RegisterChunkAsReceived(FlowChunk flowMeta)
+        public virtual void RegisterChunk(FlowChunk chunk)
         {
-            ChunkArray[ChunkIndex(flowMeta.FlowChunkNumber)] = true;
+            //todo lock this
+            ChunkArray[ChunkIndex(chunk.Number)] = true;
             TotalChunksReceived++;
+            if (IsComplete)
+            {
+                CompletedDateTime = DateTime.Now;
+            }
         }
-
-        public bool HasChunk(FlowChunk flowMeta)
+        
+        public bool HasChunk(FlowChunk chunk)
         {
             // todo lock this
-            return ChunkArray[ChunkIndex(flowMeta.FlowChunkNumber)];
+            var chunkIndex = ChunkIndex(chunk.Number);
+            return ChunkArray[chunkIndex];
+        }
+
+        private long ChunkIndex(long chunkNumber)
+        {
+            return chunkNumber - 1;
         }
     }
 }

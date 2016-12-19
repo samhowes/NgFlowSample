@@ -61,7 +61,7 @@ namespace Flow.Net
             return Chunk.FlowFilename;
             
             // If you wanted to save each chunk individually and stitch it together later (bad performance in my opinion):
-            //var flowChunkName = String.Format("{0}.{1}", Chunk.flowFilename, Chunk.FlowChunkNumber);
+            //var flowChunkName = String.Format("{0}.{1}", Chunk.flowFilename, Chunk.Number);
             //return flowChunkName;
         }
 
